@@ -1,71 +1,80 @@
 import type { Decision } from './enums';
-import type { Scores, ScoresInput } from './scale-evaluation';
 
 /**
- * Six-factor scoring and the recommendation heuristic (spec section 6).
+ * The six-dimension scorecard and the recommendation heuristic (SPEC §3).
  *
- * Both the total and the decision are computed here rather than taken from the
- * model. A recommendation that disagrees with its own scorecard is worse than
- * no recommendation, and the arithmetic is the one part of this product that
- * has no reason to be probabilistic.
+ * Principle P2 lives here: the total and the decision are computed, never
+ * taken from whatever produced the analysis. A recommendation that disagrees
+ * with its own scorecard is worse than no recommendation, and this is the one
+ * part of the product that has no reason to be probabilistic.
  */
 
 export const SCORE_DIMENSIONS = [
   {
     key: 'marketAttractiveness',
     label: 'Market Attractiveness',
-    requirement: 'Score plus evidence-backed rationale.',
+    anchoredIn: 'Size, growth, margin structure, timing.',
   },
   {
     key: 'customerPain',
     label: 'Customer Pain',
-    requirement: 'Score plus frequency/severity/economic impact reasoning.',
+    anchoredIn: 'Frequency, severity, economic impact.',
   },
   {
     key: 'edgeStrength',
     label: 'Edge Strength',
-    requirement: 'Score plus entry-wedge rationale.',
+    anchoredIn: 'Quality of the entry wedge.',
   },
   {
     key: 'valueChainLeverage',
     label: 'Value-Chain Leverage',
-    requirement: 'Score plus control/economic position rationale.',
+    anchoredIn: 'Control and economic position of the node attacked.',
   },
   {
     key: 'defensibility',
     label: 'Defensibility',
-    requirement: 'Score plus compounding advantage rationale.',
+    anchoredIn: 'Whether the advantage compounds or erodes.',
   },
   {
     key: 'speedToMarket',
     label: 'Speed to Market',
-    requirement: 'Score plus feasibility/testability rationale.',
+    anchoredIn: 'Feasibility and testability in the near term.',
   },
 ] as const;
 
 export type ScoreDimensionKey = (typeof SCORE_DIMENSIONS)[number]['key'];
 
-export const MAX_TOTAL = SCORE_DIMENSIONS.length * 5; // 30
+export const MIN_SCORE = 1;
+export const MAX_SCORE = 5;
 
-/** Product heuristics from spec section 6. */
-export const DECISION_THRESHOLDS = [
-  { decision: 'INVEST' as const, min: 24, max: 30 },
-  { decision: 'REFINE' as const, min: 18, max: 23 },
-  { decision: 'RECONSIDER' as const, min: 0, max: 17 },
-];
+/** 6 dimensions x 5 = 30. Derived, so it cannot fall out of step. */
+export const MAX_TOTAL = SCORE_DIMENSIONS.length * MAX_SCORE;
+export const MIN_TOTAL = SCORE_DIMENSIONS.length * MIN_SCORE;
 
-export function computeTotal(scores: ScoresInput): number {
-  return SCORE_DIMENSIONS.reduce((sum, d) => sum + scores[d.key].score, 0);
+/**
+ * Product heuristics from SPEC §3. Ordered high to low and read as the first
+ * band whose floor the total reaches, so the bands cannot develop a gap or an
+ * overlap the way an explicit min/max pair can.
+ */
+export const DECISION_BANDS = [
+  { decision: 'INVEST' as const, min: 24 },
+  { decision: 'REFINE' as const, min: 18 },
+  { decision: 'RECONSIDER' as const, min: Number.NEGATIVE_INFINITY },
+] as const;
+
+/** Any shape carrying the six dimensions. Keeps scoring independent of the schema. */
+export type DimensionScores = Record<ScoreDimensionKey, { score: number }>;
+
+export function computeTotal(scores: DimensionScores): number {
+  return SCORE_DIMENSIONS.reduce((sum, dimension) => sum + scores[dimension.key].score, 0);
 }
 
 export function decisionForTotal(total: number): Decision {
-  const band = DECISION_THRESHOLDS.find((b) => total >= b.min && total <= b.max);
-  // Every total from 6-30 falls in a band; the fallback keeps the type total.
-  return band ? band.decision : 'RECONSIDER';
-}
-
-export function withTotal(scores: ScoresInput): Scores {
-  return { ...scores, total: computeTotal(scores) };
+  const band = DECISION_BANDS.find((candidate) => total >= candidate.min);
+  // The final band has no floor, so this is unreachable; it exists because the
+  // compiler cannot know that, and throwing beats returning a wrong decision.
+  if (!band) throw new Error(`No decision band matched a total of ${total}.`);
+  return band.decision;
 }
 
 export const DECISION_COPY: Record<
@@ -93,9 +102,8 @@ export const DECISION_COPY: Record<
 };
 
 /**
- * Shown next to every recommendation. The spec is explicit that this is
- * decision support, not a prediction of product success, and the UI is required
- * to say so.
+ * Shown wherever a recommendation appears. SPEC §3 requires the product to
+ * state plainly that this is decision support rather than a prediction.
  */
 export const DECISION_DISCLAIMER =
   'This recommendation is decision support, not a prediction of product success. ' +

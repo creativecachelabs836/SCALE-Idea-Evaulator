@@ -1,9 +1,12 @@
 import { z } from 'zod';
 
 /**
- * Core enumerations from spec section 6. These are the only legal values in a
- * canonical ScaleEvaluation; the orchestration layer rejects anything else
- * before persistence.
+ * Core enumerations (SPEC §3).
+ *
+ * These are the only legal values in a canonical evaluation. Validation
+ * rejects anything else rather than coercing it, because a value outside this
+ * set means the producer misunderstood the contract, and silently mapping it to
+ * a neighbour would hide that.
  */
 
 export const ClaimType = z.enum(['evidence', 'inference', 'hypothesis']);
@@ -18,6 +21,11 @@ export type InnovationClassification = z.infer<typeof InnovationClassification>;
 export const Decision = z.enum(['INVEST', 'REFINE', 'RECONSIDER']);
 export type Decision = z.infer<typeof Decision>;
 
+/**
+ * Run status. Nothing in Iteration 1 produces a run — durable runs arrive in
+ * Iteration 5 — but the vocabulary belongs to the domain, and defining it here
+ * keeps the progress stages from being invented ad hoc later.
+ */
 export const RunStatus = z.enum([
   'queued',
   'researching',
@@ -60,28 +68,12 @@ export const SourceType = z.enum([
 ]);
 export type SourceType = z.infer<typeof SourceType>;
 
-/**
- * Agent progress states (spec section 8) mapped onto the persisted run.status
- * enum. The UI shows the human label; the database stores the canonical status.
- */
-export const PROGRESS_STAGES: ReadonlyArray<{
-  label: string;
-  status: RunStatus;
-  /** Fraction of the run considered complete when this stage begins. */
-  progress: number;
-}> = [
-  { label: 'Understanding idea', status: 'queued', progress: 0.02 },
-  { label: 'Researching industry', status: 'researching', progress: 0.12 },
-  { label: 'Analyzing companies', status: 'researching', progress: 0.24 },
-  { label: 'Mapping customers', status: 'synthesizing', progress: 0.38 },
-  { label: 'Building value chain', status: 'mapping', progress: 0.52 },
-  { label: 'Testing disruption thesis', status: 'mapping', progress: 0.66 },
-  { label: 'Evaluating opportunity', status: 'evaluating', progress: 0.78 },
-  { label: 'Preparing recommendation', status: 'evaluating', progress: 0.9 },
-  { label: 'Rendering report', status: 'rendering', progress: 0.97 },
-];
+/** The four stages of the disruption path (SPEC §3, step 6). */
+export const DISRUPTION_STAGES = [
+  { key: 'edge', label: 'Enters at the Edge' },
+  { key: 'improve', label: 'Improves Quietly' },
+  { key: 'climb', label: 'Climbs the Value Chain' },
+  { key: 'rewrite', label: 'Rewrites the Value Chain' },
+] as const;
 
-export const TERMINAL_STATUSES: ReadonlySet<RunStatus> = new Set<RunStatus>([
-  'completed',
-  'failed',
-]);
+export type DisruptionStageKey = (typeof DISRUPTION_STAGES)[number]['key'];

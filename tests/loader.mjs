@@ -1,10 +1,10 @@
 /**
  * Module resolution hook for `node --test`.
  *
- * The source uses the `@/*` path alias and extensionless imports, both of
- * which the bundler resolves but Node's ESM loader does not. This hook teaches
- * the test runner the same two rules so tests can import application modules
- * directly, with no build step and no extra dependency.
+ * The source uses the `@/*` path alias and extensionless imports, both of which
+ * the bundler resolves but Node's ESM loader does not. This hook teaches the
+ * test runner the same two rules, so tests import application modules directly
+ * with no build step and no test-framework dependency.
  */
 
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -30,9 +30,13 @@ function resolveOnDisk(absolute) {
 }
 
 export async function resolve(specifier, context, nextResolve) {
-  // `server-only` is a Next.js build-time guard with no runtime behavior.
+  // `server-only` is a Next.js build-time guard with no runtime behaviour.
+  // There is no client bundle under the test runner, so importing it is a no-op.
   if (specifier === 'server-only') {
-    return { url: pathToFileURL(path.join(root, 'tests', 'stub-server-only.mjs')).href, shortCircuit: true };
+    return {
+      url: pathToFileURL(path.join(root, 'tests', 'stub-server-only.mjs')).href,
+      shortCircuit: true,
+    };
   }
 
   if (specifier.startsWith('@/')) {

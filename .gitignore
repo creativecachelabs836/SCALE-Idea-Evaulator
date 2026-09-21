@@ -5,7 +5,7 @@ build/
 *.tsbuildinfo
 next-env.d.ts
 
-# Local data + secrets
+# Local configuration and data
 .env
 .env.local
 data/
