@@ -12,8 +12,10 @@ else is inferred, and labelled as inferred.
 
 ## Status
 
-**Iteration 0 — Foundation.** The repository, the plan, and a skeleton that
-runs. No domain logic yet; that is Iteration 1.
+**Iteration 1 complete — the evaluation contract.** The canonical data model,
+the six-dimension scorecard, and the validation boundary exist and are covered
+by 45 tests. No UI, persistence or model calls yet; Iteration 2 renders a full
+evaluation on screen.
 
 The plan lives in **[SPEC.md](./SPEC.md)** — product thesis, the S.C.A.L.E.
 methodology, the principles we build under, and the iteration roadmap with
@@ -54,6 +56,7 @@ README.md          You are here
 SPEC.md            The plan: methodology, principles, iteration roadmap
 scripts/launch.sh  Preflight checks and server startup
 src/app/           Next.js App Router pages
+src/domain/        The evaluation contract: schema, scoring, validation, assembly
 tests/             Test suite and its module-resolution harness
 ```
 
@@ -72,9 +75,14 @@ step and no test framework dependency. `tests/loader.mjs` teaches Node the
 
 New test files are picked up automatically: anything matching `tests/*.test.ts`.
 
-One rule worth stating up front, because breaking it has already cost us once:
-**where behaviour is derived from input, test across many inputs, not one
-example.** See principle P7 in the spec.
+Two rules worth stating up front, both of which have already caught real
+defects:
+
+- **Where behaviour is derived from input, test across many inputs, not one
+  example** (P7). The scoring tests enumerate all 15,625 score combinations
+  rather than sampling.
+- **A test never seen failing proves nothing** (P9). Before claiming a guarantee
+  is covered, break it deliberately and watch the suite go red.
 
 ## How this repository is meant to be used
 

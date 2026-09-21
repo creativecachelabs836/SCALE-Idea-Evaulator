@@ -5,7 +5,7 @@
 > same commit as the code. A spec that only ever gets appended to is a wish list,
 > not a plan.
 
-**Status:** Iteration 0 complete. Iteration 1 is next.
+**Status:** Iterations 0–1 complete. Iteration 2 is next.
 **Source:** Derived from *S.C.A.L.E. Strategic Evaluator — Engineering Build &
 Launch Requirements* (Creative Cache Labs / Tech Intuitions). Section references
 below like `§6` point back to that document.
@@ -87,6 +87,12 @@ hash boundary. Where behaviour is derived from input, test across many inputs.
 An evidence-backed RECONSIDER is a more valuable product than a flattering
 INVEST. The methodology must resist the pull toward telling users what they want
 to hear — in particular, a technology-led idea is not automatically disruptive.
+
+**P9 — A test never seen failing proves nothing.**
+For each guarantee an iteration claims, break it deliberately and confirm a test
+fails. A green suite says only that nothing tested is broken; it does not say the
+suite tests what it claims to. Iteration 1 found a criterion passing for the
+wrong reason this way.
 
 ---
 
@@ -219,14 +225,22 @@ right with no UI, no database and no model in the way.
 **Out of scope:** UI, persistence, any model call, the report.
 
 **Acceptance:**
-- [ ] A valid payload validates; each required section missing causes rejection
-- [ ] An out-of-range score is rejected, not clamped
-- [ ] A model-supplied `total` or `decision` is discarded
-- [ ] Value-chain ordering is normalized even when every value is individually legal
-- [ ] Citations pointing at unknown sources are pruned
-- [ ] Decision bands are correct at every boundary (17/18, 23/24)
+- [x] A valid payload validates; each required section missing causes rejection
+- [x] An out-of-range score is rejected, not clamped
+- [x] A model-supplied `total` or `decision` is discarded
+- [x] Value-chain ordering is normalized even when every value is individually legal
+- [x] Citations pointing at unknown sources are pruned
+- [x] Decision bands are correct at every boundary (17/18, 23/24)
 
-**Demo:** `npm test` — the contract is the test suite.
+**Demo:** `npm test` — the contract is the test suite. 45 tests.
+
+**What it taught us:** Mutation testing the suite — deliberately breaking each
+guarantee to confirm a test fails — found that one of the six criteria was
+passing for the wrong reason. Discarding a supplied `total` was correct, but
+only because unknown keys do not survive parsing; removing the discard broke no
+test. Behaviour that is correct but untested is indistinguishable from
+accidental until someone edits it. Detection now runs on every payload and is
+asserted directly. This produced principle **P9**.
 
 ---
 
@@ -379,6 +393,9 @@ them by accident.
 | D3 | Total and decision computed server-side | P2 |
 | D4 | A deterministic fixture provider ships permanently, not as scaffolding | P6 — it is the demo path and the test fixture |
 | D5 | Iterations are sliced by *visible capability*, not by architectural layer | An iteration that ships no visible change cannot be reviewed meaningfully |
+| D6 | The assembled envelope stays minimal in Iteration 1 | Persistence identifiers (opportunity, organization, run, version) are a Iteration 5 concern. `schemaVersion` exists so adding them is a visible, versioned change |
+| D7 | Duplicate ids are an error, not a repair | Ordering can be normalized without guessing; which of two identical ids a citation meant cannot be |
+| D8 | Derived-field detection runs on every payload, not only on the repair path | A producer supplying `total` or `decision` is violating the contract whether or not the rest of the payload happened to be well formed, and that is worth recording |
 
 ## 6. Open decisions
 
