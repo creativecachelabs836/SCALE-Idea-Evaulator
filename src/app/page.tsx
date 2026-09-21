@@ -1,68 +1,64 @@
-import { config } from '@/lib/config';
-import { IdeaForm } from '@/components/IdeaForm';
-import { SectionHeading } from '@/components/primitives';
-
-export const dynamic = 'force-dynamic';
+import { CURRENT_ITERATION, ITERATIONS } from '@/lib/iterations';
 
 /**
- * Intake (FR-01, AC-01).
+ * Iteration 0 landing page.
  *
- * The product promise is that a description is the only thing a user has to
- * supply. Optional context exists but stays collapsed, so the default path is
- * one field and one button.
+ * Deliberately minimal: it states the product promise and shows where we are on
+ * the roadmap. It will be replaced by the intake form in Iteration 3.
  */
 export default function HomePage() {
   return (
     <div className="shell">
-      <section className="section">
-        <SectionHeading
-          eyebrow="Idea to thesis"
-          title="Describe your idea. Get a strategic thesis."
-          lead={`Write at least ${config.minDescriptionWords} words about what you want to build and who it is for. The evaluator researches the market, maps the value chain, classifies the innovation, scores six dimensions, and produces a branded executive report with its evidence attached.`}
-        />
-
-        <IdeaForm
-          minWords={config.minDescriptionWords}
-          maxWords={config.maxDescriptionWords}
-        />
-      </section>
-
-      <section className="section">
-        <h2>What you get</h2>
+      <header className="masthead">
+        <p className="wordmark">
+          S.C.A.L.E. <span>STRATEGIC EVALUATOR</span>
+        </p>
+        <h1>Describe your idea in 75 words. Get a strategic thesis.</h1>
         <div className="rule" aria-hidden="true" />
-        <div className="grid grid--3">
-          {[
-            {
-              title: 'Researched context',
-              body: 'Industry structure, incumbents, market dynamics, technology shifts and growth signals, with sources retained.',
-            },
-            {
-              title: 'Customer & value chain',
-              body: 'Segments with jobs to be done and switching friction, and an ordered value chain showing where value is created and captured.',
-            },
-            {
-              title: 'Innovation classification',
-              body: 'Sustaining or potentially disruptive, argued rather than assumed, with the Edge to Rewrite path laid out.',
-            },
-            {
-              title: 'Six-factor scorecard',
-              body: 'Market attractiveness, customer pain, edge strength, value-chain leverage, defensibility and speed to market, scored 1-5 with rationale.',
-            },
-            {
-              title: 'Evidence layer',
-              body: 'Every claim labelled evidence, inference or hypothesis with a confidence level, so you can see what is known and what is assumed.',
-            },
-            {
-              title: 'Experiments & 90-day plan',
-              body: 'The critical assumptions turned into experiments you can actually run, then a Validate / Prototype / Prove plan.',
-            },
-          ].map((item) => (
-            <article key={item.title} className="card">
-              <h3>{item.title}</h3>
-              <p className="muted">{item.body}</p>
-            </article>
-          ))}
-        </div>
+        <p className="lead">
+          Autonomous research, customer analysis, value-chain mapping, innovation
+          classification and a six-factor evaluation — with every claim labelled
+          as evidence, inference or hypothesis so you can see what is known and
+          what is assumed.
+        </p>
+      </header>
+
+      <section aria-labelledby="roadmap-heading">
+        <h2 id="roadmap-heading">Build roadmap</h2>
+        <p className="lead">
+          This application is being built iteratively. The plan, the methodology
+          and the acceptance criteria for each step live in{' '}
+          <code>SPEC.md</code>.
+        </p>
+
+        <ol className="roadmap">
+          {ITERATIONS.map((iteration) => {
+            const state =
+              iteration.number < CURRENT_ITERATION
+                ? 'done'
+                : iteration.number === CURRENT_ITERATION
+                  ? 'current'
+                  : 'upcoming';
+            return (
+              <li key={iteration.number} className="roadmap__item" data-state={state}>
+                <span className="roadmap__number" aria-hidden="true">
+                  {iteration.number}
+                </span>
+                <div>
+                  <h3>
+                    {iteration.title}
+                    {state === 'current' ? (
+                      <span className="badge">In progress</span>
+                    ) : state === 'done' ? (
+                      <span className="badge badge--done">Complete</span>
+                    ) : null}
+                  </h3>
+                  <p>{iteration.goal}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
       </section>
     </div>
   );

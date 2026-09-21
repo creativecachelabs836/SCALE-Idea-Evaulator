@@ -1,28 +1,23 @@
 {
   "name": "scale-strategic-evaluator",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
-  "description": "S.C.A.L.E. Strategic Evaluator - turns a 75-word idea into an evidence-backed strategic thesis.",
+  "description": "Turns a 75-word idea description into an evidence-backed strategic thesis.",
   "scripts": {
+    "launch": "./scripts/launch.sh",
+    "launch:prod": "./scripts/launch.sh --prod",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "node --test --experimental-strip-types --import ./tests/loader-register.mjs tests/*.test.ts"
   },
   "dependencies": {
-    "better-sqlite3": "13.0.3",
     "next": "16.3.5",
-    "openai": "7.20.0",
-    "playwright-core": "1.63.0",
     "react": "19.3.0",
-    "react-dom": "19.3.0",
-    "server-only": "^0.0.1",
-    "zod": "4.6.5"
+    "react-dom": "19.3.0"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
